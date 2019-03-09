@@ -9,6 +9,9 @@ main: $(OBJS)
 9cc.o: 9cc.c
 	$(CC) $(CFLAGS) -c 9cc.c
 
+test:
+	./test.sh
+
 clean:
 	rm -rf ./*.o ./*.s ./9cc ./tmp
 
