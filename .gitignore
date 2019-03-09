@@ -90,3 +90,5 @@ cc
 .vagrant/
 9cc
 tmp
+
+*.swp
