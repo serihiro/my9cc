@@ -70,7 +70,15 @@ Node *term() {
 }
 
 Node *mul() {
-    return term();
+    Node *node = term();
+
+    for (;;) {
+        if (consume('*')) {
+            node = new_node('*', node, term());
+        } else {
+            return node;
+        }
+    }
 }
 
 Node *add() {
@@ -106,6 +114,9 @@ void gen(Node *node) {
         case '-':
             printf("  sub rax, rdi\n");
             break;
+        case '*':
+            printf("  mul rdi\n");
+            break;
     }
 
     printf("  push rax\n");
@@ -119,7 +130,7 @@ void tokenize(char *p) {
             continue;
         }
 
-        if (*p == '+' || *p == '-') {
+        if (*p == '+' || *p == '-' || *p == '*') {
             tokens[i].ty = *p;
             tokens[i].input = p;
             ++i;
@@ -166,3 +177,4 @@ int main(int argc, char **argv) {
     printf("  ret\n");
     return 0;
 }
+
