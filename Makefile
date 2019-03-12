@@ -12,6 +12,9 @@ main: $(OBJS)
 test:
 	./test.sh
 
+format:
+	clang-format 9cc.c -i
+
 clean:
 	rm -rf ./*.o ./*.s ./9cc ./tmp
 
