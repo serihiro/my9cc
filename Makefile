@@ -1,15 +1,13 @@
 PROGRAM_NAME = 9cc
 CC = gcc
 CFLAGS = -g3 -O1 -Wall -Wextra -std=c11
-OBJS = 9cc.o
 
-main: $(OBJS)
-	$(CC) $(CFLAGS) -o $(PROGRAM_NAME) $(OBJS)
+main:
+	$(CC) 9cc.c $(CFLAGS) -o $(PROGRAM_NAME)
 
-9cc.o: 9cc.c
-	$(CC) $(CFLAGS) -c 9cc.c
-
-test:
+test: 
+	@make clean
+	@make main
 	./9cc -test
 	./test.sh
 

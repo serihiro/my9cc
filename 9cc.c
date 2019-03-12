@@ -31,7 +31,7 @@ typedef struct {
   int len;
 } Vector;
 
-Token tokens[100];
+Vector *tokens;
 int pos;
 
 void error(char *message, char *input);
@@ -46,6 +46,12 @@ Node *add();
 Node *mul();
 Node *term();
 Vector *new_vector();
+void vec_push(Vector *vec, void *elem);
+
+Token *new_token() {
+  Token *token = malloc(sizeof(Token));
+  return token;
+}
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
   Node *node = malloc(sizeof(Node));
@@ -63,7 +69,8 @@ Node *new_node_num(int val) {
 }
 
 int consume(int ty) {
-  if (tokens[pos].ty != ty) {
+  Token *token = (Token *)tokens->data[pos];
+  if (token->ty != ty) {
     return 0;
   }
   ++pos;
@@ -71,23 +78,24 @@ int consume(int ty) {
 }
 
 Node *term() {
+  Token *token = (Token *)tokens->data[pos];
   if (consume('(')) {
     Node *node = add();
 
     if (!consume(')')) {
-      error("開きカッコに対応する閉じカッコがありません: %s",
-            tokens[pos].input);
+      error("開きカッコに対応する閉じカッコがありません: %s", token->input);
       return node;
     }
 
     return node;
   }
 
-  if (tokens[pos].ty == TK_NUM) {
-    return new_node_num(tokens[pos++].val);
+  if (token->ty == TK_NUM) {
+    ++pos;
+    return new_node_num(token->val);
   }
 
-  error("数値でも開きカッコでもないトークンです: %s", tokens[pos].input);
+  error("数値でも開きカッコでもないトークンです: %s", token->input);
 
   return NULL;
 }
@@ -167,7 +175,6 @@ void gen(Node *node) {
 }
 
 void tokenize(char *p) {
-  int i = 0;
   while (*p) {
     if (isspace(*p)) {
       ++p;
@@ -176,26 +183,30 @@ void tokenize(char *p) {
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
         *p == ')') {
-      tokens[i].ty = *p;
-      tokens[i].input = p;
-      ++i;
+      Token *token = new_token();
+      token->ty = *p;
+      token->input = p;
+      vec_push(tokens, token);
       ++p;
       continue;
     }
 
     if (isdigit(*p)) {
-      tokens[i].ty = TK_NUM;
-      tokens[i].input = p;
-      tokens[i].val = strtol(p, &p, 10);
-      ++i;
+      Token *token = new_token();
+      token->ty = TK_NUM;
+      token->input = p;
+      token->val = strtol(p, &p, 10);
+      vec_push(tokens, token);
       continue;
     }
 
     error("トークナイズできません: %s\n", p);
   }
 
-  tokens[i].ty = TK_EOF;
-  tokens[i].input = p;
+  Token *token = new_token();
+  token->ty = TK_EOF;
+  token->input = p;
+  vec_push(tokens, token);
 }
 
 void error(char *message, char *input) {
@@ -213,6 +224,8 @@ int main(int argc, char **argv) {
     runtest();
     return 0;
   }
+
+  tokens = new_vector();
 
   tokenize(argv[1]);
   Node *node = add();
@@ -243,13 +256,16 @@ void runtest() {
   expect(__LINE__, 0, vec->len);
 
   for (int i = 0; i < 100; ++i) {
-    vec_push(vec, (void *)i);
+    int *value = malloc(sizeof(int));
+    *value = i;
+    vec_push(vec, (void *)value);
   }
 
   expect(__LINE__, 100, vec->len);
-  expect(__LINE__, 0, (int)vec->data[0]);
-  expect(__LINE__, 50, (int)vec->data[50]);
-  expect(__LINE__, 99, (int)vec->data[99]);
+  expect(__LINE__, 0, *(int *)vec->data[0]);
+  expect(__LINE__, 50, *(int *)vec->data[50]);
+  expect(__LINE__, 99, *(int *)vec->data[99]);
 
   printf("OK\n");
 }
+
