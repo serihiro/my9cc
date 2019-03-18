@@ -5,11 +5,13 @@
 
 enum {
   TK_NUM = 256,
+  TK_IDENT,
   TK_EOF,
 };
 
 enum {
   ND_NUM = 256,
+  ND_IDENT,
 };
 
 typedef struct {
@@ -23,6 +25,7 @@ typedef struct Node {
   struct Node *lhs;
   struct Node *rhs;
   int val;
+  char name;
 } Node;
 
 typedef struct {
@@ -34,19 +37,26 @@ typedef struct {
 Vector *tokens;
 int pos;
 
+Node *code[100];
+
 void error(char *message, char *input);
 int consume(int ty);
 void tokenize(char *p);
 void gen(Node *node);
+void gen_lval(Node *node);
 int expect(int line, int expected, int actual);
 void runtest();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
+Node *new_node_ident(char name);
 Node *add();
 Node *mul();
 Node *term();
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);
+void program();
+Node *stmt();
+Node *assign();
 
 Token *new_token() {
   Token *token = malloc(sizeof(Token));
@@ -65,6 +75,13 @@ Node *new_node_num(int val) {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_NUM;
   node->val = val;
+  return node;
+}
+
+Node *new_node_ident(char name) {
+  Node *node = malloc(sizeof(Node));
+  node->ty = ND_IDENT;
+  node->name = name;
   return node;
 }
 
@@ -95,7 +112,13 @@ Node *term() {
     return new_node_num(token->val);
   }
 
-  error("数値でも開きカッコでもないトークンです: %s", token->input);
+  if (token->ty == TK_IDENT) {
+    ++pos;
+    // variable is one character, for now
+    return new_node_ident(token->input[0]);
+  }
+
+  error("数値でも変数でも開きカッコでもないトークンです: %s", token->input);
 
   return NULL;
 }
@@ -128,6 +151,38 @@ Node *add() {
   }
 }
 
+Node *assign() {
+  Node *node = add();
+
+  for (;;) {
+    if (consume('=')) {
+      node = new_node('=', node, assign());
+    } else {
+      return node;
+    }
+  }
+}
+
+Node *stmt() {
+  Node *node = assign();
+  if (!consume(';')) {
+    Token *token = (Token *)tokens->data[pos];
+    error("';'ではないトークンです: %s", token->input);
+  }
+
+  return node;
+}
+
+void program() {
+  int i = 0;
+  Token *token = (Token *)tokens->data[pos];
+  while (token->ty != TK_EOF) {
+    code[i++] = stmt();
+    token = (Token *)tokens->data[pos];
+  }
+  code[i] = NULL;
+}
+
 Vector *new_vector() {
   Vector *vec = malloc(sizeof(Vector));
   vec->data = malloc(sizeof(void *) * 16);
@@ -144,9 +199,40 @@ void vec_push(Vector *vec, void *elem) {
   vec->data[vec->len++] = elem;
 }
 
+void gen_lval(Node *node) {
+  if (node->ty != ND_IDENT) {
+    error("代入の左辺値が変数ではありません:%c", (char *)&node->val);
+  }
+
+  // calculate address of the target variable
+  int offset = ('z' - node->name + 1) * 8;
+  printf("  mov rax, rbp\n");
+  printf("  sub rax, %d\n", offset);
+  printf("  push rax\n");
+}
+
 void gen(Node *node) {
   if (node->ty == ND_NUM) {
     printf("  push %d\n", node->val);
+    return;
+  }
+
+  if (node->ty == ND_IDENT) {
+    gen_lval(node);
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
+    return;
+  }
+
+  if (node->ty == '=') {
+    gen_lval(node->lhs);
+    gen(node->rhs);
+
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  mov [rax], rdi\n");
+    printf("  push rdi\n");
     return;
   }
 
@@ -182,7 +268,7 @@ void tokenize(char *p) {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
-        *p == ')') {
+        *p == ')' || *p == ';' || *p == '=') {
       Token *token = new_token();
       token->ty = *p;
       token->input = p;
@@ -197,6 +283,15 @@ void tokenize(char *p) {
       token->input = p;
       token->val = strtol(p, &p, 10);
       vec_push(tokens, token);
+      continue;
+    }
+
+    if ('a' <= *p && *p <= 'z') {
+      Token *token = new_token();
+      token->ty = TK_IDENT;
+      token->input = p;
+      vec_push(tokens, token);
+      ++p;
       continue;
     }
 
@@ -228,15 +323,24 @@ int main(int argc, char **argv) {
   tokens = new_vector();
 
   tokenize(argv[1]);
-  Node *node = add();
+  program();
 
   printf(".intel_syntax noprefix\n");
   printf(".global main\n");
   printf("main:\n");
 
-  gen(node);
+  // allocate stack spaces for 26 variables
+  printf("  push rbp\n");
+  printf("  mov rbp, rsp\n");
+  printf("  sub rsp, 208\n");
 
-  printf("  pop rax\n");
+  for (int i = 0; code[i] != NULL; i++) {
+    gen(code[i]);
+    printf("  pop rax\n");
+  }
+
+  printf("  mov rsp, rbp\n");
+  printf("  pop rbp\n");
   printf("  ret\n");
   return 0;
 }
@@ -268,4 +372,3 @@ void runtest() {
 
   printf("OK\n");
 }
-
