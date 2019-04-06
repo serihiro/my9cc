@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 enum {
   TK_NUM = 256,
@@ -34,6 +35,11 @@ typedef struct {
   int len;
 } Vector;
 
+typedef struct {
+  Vector *keys;
+  Vector *vals;
+} Map;
+
 Vector *tokens;
 int pos;
 
@@ -57,6 +63,9 @@ void vec_push(Vector *vec, void *elem);
 void program();
 Node *stmt();
 Node *assign();
+Map *new_map();
+void map_put(Map *map, char *key, void *val);
+void *map_get(Map *map, char *key);
 
 Token *new_token() {
   Token *token = malloc(sizeof(Token));
@@ -199,6 +208,26 @@ void vec_push(Vector *vec, void *elem) {
   vec->data[vec->len++] = elem;
 }
 
+Map *new_map() {
+  Map *map = malloc(sizeof(Map));
+  map->keys = new_vector();
+  map->vals = new_vector();
+  return map;
+}
+
+void map_put(Map *map, char *key, void *val) {
+  vec_push(map->keys, key);
+  vec_push(map->vals, val);
+}
+
+void *map_get(Map *map, char *key) {
+  for (int i = map->keys->len - 1; i >= 0; i--)
+    if (strcmp(map->keys->data[i], key) == 0)
+      return map->vals->data[i];
+  return NULL;
+}
+
+
 void gen_lval(Node *node) {
   if (node->ty != ND_IDENT) {
     error("代入の左辺値が変数ではありません:%c", (char *)&node->val);
@@ -207,7 +236,8 @@ void gen_lval(Node *node) {
   // calculate address of the target variable
   int offset = ('z' - node->name + 1) * 8;
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", offset); // make rax point to the address of target variable
+  printf("  sub rax, %d\n",
+         offset);         // make rax point to the address of target variable
   printf("  push rax\n"); // push the address of the target variable
 }
 
@@ -219,9 +249,11 @@ void gen(Node *node) {
 
   if (node->ty == ND_IDENT) {
     gen_lval(node);
-    printf("  pop rax\n"); // here, the target variable address is loaded into rax
-    printf("  mov rax, [rax]\n"); // laod the value of the target variable into rax
-    printf("  push rax\n"); // push the value of the target variable
+    printf(
+        "  pop rax\n"); // here, the target variable address is loaded into rax
+    printf(
+        "  mov rax, [rax]\n"); // laod the value of the target variable into rax
+    printf("  push rax\n");    // push the value of the target variable
     return;
   }
 
@@ -229,10 +261,12 @@ void gen(Node *node) {
     gen_lval(node->lhs);
     gen(node->rhs);
 
-    printf("  pop rdi\n"); // here, the value of the right side is laoded into rdi
-    printf("  pop rax\n"); // here, the address of the variable specified in left side is loaded into rax
+    printf(
+        "  pop rdi\n"); // here, the value of the right side is laoded into rdi
+    printf("  pop rax\n"); // here, the address of the variable specified in
+                           // left side is loaded into rax
     printf("  mov [rax], rdi\n"); // [variable] = [value]
-    printf("  push rdi\n"); // push the value for the next node
+    printf("  push rdi\n");       // push the value for the next node
     return;
   }
 
@@ -355,7 +389,7 @@ int expect(int line, int expected, int actual) {
   return 0;
 }
 
-void runtest() {
+void test_vector(){
   Vector *vec = new_vector();
   expect(__LINE__, 0, vec->len);
 
@@ -369,6 +403,35 @@ void runtest() {
   expect(__LINE__, 0, *(int *)vec->data[0]);
   expect(__LINE__, 50, *(int *)vec->data[50]);
   expect(__LINE__, 99, *(int *)vec->data[99]);
-
-  printf("OK\n");
+  printf("test_vector OK\n");
 }
+
+void test_map() {
+  Map *map = new_map();
+  expect(__LINE__, 1, (int)(map_get(map, "foo") == NULL));
+
+  int *value1 = malloc(sizeof(int));
+  *value1 = 2;
+  map_put(map, "foo", (void *)value1);
+  expect(__LINE__, 2, *(int *)map_get(map, "foo"));
+
+  int *value2 = malloc(sizeof(int));
+  *value2 = 4;
+  map_put(map, "bar", (void *)value2);
+  expect(__LINE__, 4, *(int *)map_get(map, "bar"));
+
+  int *value3 = malloc(sizeof(int));
+  *value3 = 6;
+  map_put(map, "foo", (void *)value3);
+  expect(__LINE__, 6, *(int *)map_get(map, "foo"));
+
+  printf("test_map OK\n");
+}
+
+
+void runtest() {
+  test_vector();
+  test_map();
+  printf("all tests OK\n");
+}
+
