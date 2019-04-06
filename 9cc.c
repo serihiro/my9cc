@@ -207,8 +207,8 @@ void gen_lval(Node *node) {
   // calculate address of the target variable
   int offset = ('z' - node->name + 1) * 8;
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n", offset);
-  printf("  push rax\n");
+  printf("  sub rax, %d\n", offset); // make rax point to the address of target variable
+  printf("  push rax\n"); // push the address of the target variable
 }
 
 void gen(Node *node) {
@@ -219,9 +219,9 @@ void gen(Node *node) {
 
   if (node->ty == ND_IDENT) {
     gen_lval(node);
-    printf("  pop rax\n");
-    printf("  mov rax, [rax]\n");
-    printf("  push rax\n");
+    printf("  pop rax\n"); // here, the target variable address is loaded into rax
+    printf("  mov rax, [rax]\n"); // laod the value of the target variable into rax
+    printf("  push rax\n"); // push the value of the target variable
     return;
   }
 
@@ -229,10 +229,10 @@ void gen(Node *node) {
     gen_lval(node->lhs);
     gen(node->rhs);
 
-    printf("  pop rdi\n");
-    printf("  pop rax\n");
-    printf("  mov [rax], rdi\n");
-    printf("  push rdi\n");
+    printf("  pop rdi\n"); // here, the value of the right side is laoded into rdi
+    printf("  pop rax\n"); // here, the address of the variable specified in left side is loaded into rax
+    printf("  mov [rax], rdi\n"); // [variable] = [value]
+    printf("  push rdi\n"); // push the value for the next node
     return;
   }
 
