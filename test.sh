@@ -44,7 +44,9 @@ try 21 'a=7;b=3;a*b;'
 try 100 '  a=2;b  =5;c=  10 ; a * b *  c  ; '
 try 102 'a=2;b  =5;c=  10 ;d =  a * b *  c  ;d+2; '
 try 3 'A=3;A;'
-
+try 2 'ab=1;cd=1;ab+cd;'
+try 9 'ab1=4;cd2=5;ab1+cd2;'
+try 9 'gasdfsadfSADFWERdgadsfsd5fsd4afs4adfb=4;cd2=5;gasdfsadfSADFWERdgadsfsd5fsd4afs4adfb+cd2;'
 
 echo OK
 

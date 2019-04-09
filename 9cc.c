@@ -1,7 +1,7 @@
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 enum {
   TK_NUM = 256,
@@ -25,7 +25,7 @@ typedef struct Node {
   struct Node *lhs;
   struct Node *rhs;
   int val;
-  char name;
+  char *name;
 } Node;
 
 typedef struct {
@@ -43,6 +43,8 @@ Vector *tokens;
 int pos;
 
 Node *code[100];
+Map *variable_map;
+int variable_offset;
 
 void error(char *message, char *input);
 int consume(int ty);
@@ -53,7 +55,7 @@ int expect(int line, int expected, int actual);
 void runtest();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
-Node *new_node_ident(char name);
+Node *new_node_ident(char *name);
 Node *add();
 Node *mul();
 Node *term();
@@ -86,7 +88,7 @@ Node *new_node_num(int val) {
   return node;
 }
 
-Node *new_node_ident(char name) {
+Node *new_node_ident(char *name) {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_IDENT;
   node->name = name;
@@ -122,7 +124,9 @@ Node *term() {
 
   if (token->ty == TK_IDENT) {
     ++pos;
-    return new_node_ident(token->input[0]);
+    char *variable = (char *)malloc(sizeof(char) * (strlen(token->input) + 1));
+    strcpy(variable, token->input);
+    return new_node_ident(variable);
   }
 
   error("数値でも変数でも開きカッコでもないトークンです: %s", token->input);
@@ -225,17 +229,25 @@ void *map_get(Map *map, char *key) {
   return NULL;
 }
 
-
 void gen_lval(Node *node) {
   if (node->ty != ND_IDENT) {
     error("代入の左辺値が変数ではありません:%c", (char *)&node->val);
   }
 
-  // calculate address of the target variable
-  int offset = ('z' - node->name + 1) * 8;
   printf("  mov rax, rbp\n");
-  printf("  sub rax, %d\n",
-         offset);         // make rax point to the address of target variable
+
+  // calculate address of the target variable
+  int *offset = (int *)map_get(variable_map, node->name);
+  if (offset == NULL) {
+    // varibale size if fixed 8 Byte, for now
+    variable_offset += 8;
+    offset = (int *)malloc(sizeof(int));
+    *offset = variable_offset;
+    char *variable_name = (char *)malloc(sizeof(char) * (strlen(node->name) + 1));
+    strcpy(variable_name, node->name);
+    map_put(variable_map, variable_name, offset);
+  }
+  printf("  sub rax, %d\n", *offset);
   printf("  push rax\n"); // push the address of the target variable
 }
 
@@ -247,11 +259,9 @@ void gen(Node *node) {
 
   if (node->ty == ND_IDENT) {
     gen_lval(node);
-    printf(
-        "  pop rax\n"); // here, the target variable address is loaded into rax
-    printf(
-        "  mov rax, [rax]\n"); // laod the value of the target variable into rax
-    printf("  push rax\n");    // push the value of the target variable
+    printf("  pop rax\n");
+    printf("  mov rax, [rax]\n");
+    printf("  push rax\n");
     return;
   }
 
@@ -259,12 +269,10 @@ void gen(Node *node) {
     gen_lval(node->lhs);
     gen(node->rhs);
 
-    printf(
-        "  pop rdi\n"); // here, the value of the right side is laoded into rdi
-    printf("  pop rax\n"); // here, the address of the variable specified in
-                           // left side is loaded into rax
-    printf("  mov [rax], rdi\n"); // [variable] = [value]
-    printf("  push rdi\n");       // push the value for the next node
+    printf("  pop rdi\n");
+    printf("  pop rax\n");
+    printf("  mov [rax], rdi\n");
+    printf("  push rdi\n");
     return;
   }
 
@@ -322,10 +330,17 @@ void tokenize(char *p) {
     if (isalpha(*p)) {
       Token *token = new_token();
       token->ty = TK_IDENT;
-      token->input = p;
+
+      int str_len = 0;
+      while (isalnum(*(p + str_len)))
+        ++str_len;
+      char * variable = (char *)malloc(sizeof(char) * str_len + 1);
+      strncpy(variable, p, str_len);
+      variable[str_len] = '\0';
+
+      p += str_len;
+      token->input = variable;
       vec_push(tokens, token);
-      while(isalnum(*p))
-        ++p;
       continue;
     }
 
@@ -355,6 +370,7 @@ int main(int argc, char **argv) {
   }
 
   tokens = new_vector();
+  variable_map = new_map();
 
   tokenize(argv[1]);
   program();
@@ -389,7 +405,7 @@ int expect(int line, int expected, int actual) {
   return 0;
 }
 
-void test_vector(){
+void test_vector() {
   Vector *vec = new_vector();
   expect(__LINE__, 0, vec->len);
 
@@ -427,7 +443,6 @@ void test_map() {
 
   printf("test_map OK\n");
 }
-
 
 void runtest() {
   test_vector();
