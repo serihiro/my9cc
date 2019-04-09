@@ -122,7 +122,6 @@ Node *term() {
 
   if (token->ty == TK_IDENT) {
     ++pos;
-    // variable is one character, for now
     return new_node_ident(token->input[0]);
   }
 
@@ -319,12 +318,14 @@ void tokenize(char *p) {
       continue;
     }
 
-    if ('a' <= *p && *p <= 'z') {
+    // name of variable must start with alphabet
+    if (isalpha(*p)) {
       Token *token = new_token();
       token->ty = TK_IDENT;
       token->input = p;
       vec_push(tokens, token);
-      ++p;
+      while(isalnum(*p))
+        ++p;
       continue;
     }
 

@@ -43,6 +43,8 @@ try 10 'a=7;b=3;a+b;'
 try 21 'a=7;b=3;a*b;'
 try 100 '  a=2;b  =5;c=  10 ; a * b *  c  ; '
 try 102 'a=2;b  =5;c=  10 ;d =  a * b *  c  ;d+2; '
+try 3 'A=3;A;'
+
 
 echo OK
 
