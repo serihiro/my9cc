@@ -334,7 +334,7 @@ void tokenize(char *p) {
       int str_len = 0;
       while (isalnum(*(p + str_len)))
         ++str_len;
-      char * variable = (char *)malloc(sizeof(char) * str_len + 1);
+      char * variable = (char *)malloc(sizeof(char) * (str_len + 1));
       strncpy(variable, p, str_len);
       variable[str_len] = '\0';
 
