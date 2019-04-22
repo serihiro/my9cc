@@ -5,6 +5,8 @@
 
 enum {
   TK_NUM = 256,
+  TK_EQ,
+  TK_NEQ,
   TK_IDENT,
   TK_EOF,
 };
@@ -12,6 +14,8 @@ enum {
 enum {
   ND_NUM = 256,
   ND_IDENT,
+  ND_EQ,
+  ND_NEQ,
 };
 
 typedef struct {
@@ -57,6 +61,7 @@ Node *new_node_num(int val);
 Node *new_node_ident(char *name);
 Node *add();
 Node *mul();
+Node *comp();
 Node *term();
 Vector *new_vector();
 void vec_push(Vector *vec, void *elem);

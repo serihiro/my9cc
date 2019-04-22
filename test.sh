@@ -47,6 +47,12 @@ try 3 'A=3;A;'
 try 2 'ab=1;cd=1;ab+cd;'
 try 9 'ab1=4;cd2=5;ab1+cd2;'
 try 9 'gasdfsadfSADFWERdgadsfsd5fsd4afs4adfb=4;cd2=5;gasdfsadfSADFWERdgadsfsd5fsd4afs4adfb+cd2;'
+try 1 '1==1;'
+try 0 '2==1;'
+try 1 '2!=1;'
+try 1 'a=1;b=1;a==b;'
+try 0 'a=1;b=2;a==b;'
+try 1 'a=1; b = 2;a !=  b;'
 
 echo OK
 

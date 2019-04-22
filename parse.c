@@ -72,14 +72,28 @@ Node *term() {
   return NULL;
 }
 
-Node *mul() {
+Node *comp() {
   Node *node = term();
 
   for (;;) {
+    if (consume(TK_EQ)) {
+      node = new_node(ND_EQ, node, term());
+    } else if (consume(TK_NEQ)) {
+      node = new_node(ND_NEQ, node, term());
+    } else {
+      return node;
+    }
+  }
+}
+
+Node *mul() {
+  Node *node = comp();
+
+  for (;;) {
     if (consume('*')) {
-      node = new_node('*', node, term());
+      node = new_node('*', node, comp());
     } else if (consume('/')) {
-      node = new_node('/', node, term());
+      node = new_node('/', node, comp());
     } else {
       return node;
     }
@@ -140,13 +154,40 @@ void tokenize(char *p) {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
-        *p == ')' || *p == ';' || *p == '=') {
+        *p == ')' || *p == ';') {
       Token *token = new_token();
       token->ty = *p;
       token->input = p;
       vec_push(tokens, token);
       ++p;
       continue;
+    }
+
+    if (*p == '=') {
+      Token *token = new_token();
+      if (*(p + 1) != '\0' && *(p + 1) == '=') {
+        token->ty = TK_EQ;
+        token->input = p;
+        vec_push(tokens, token);
+        p += 2;
+      } else {
+        token->ty = *p;
+        token->input = p;
+        vec_push(tokens, token);
+        ++p;
+      }
+      continue;
+    }
+
+    if (*p == '!') {
+      if (*(p + 1) != '\0' && *(p + 1) == '=') {
+        Token *token = new_token();
+        token->ty = TK_NEQ;
+        token->input = p;
+        vec_push(tokens, token);
+        p += 2;
+        continue;
+      }
     }
 
     if (isdigit(*p)) {
