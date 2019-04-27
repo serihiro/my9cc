@@ -19,7 +19,7 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
   return node;
 }
 
-Node *new_node_num(int val) {
+Node *new_node_num(int *val) {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_NUM;
   node->val = val;
@@ -33,10 +33,11 @@ Node *new_node_ident(char *name) {
   return node;
 }
 
-Node *new_node_call(char *name) {
+Node *new_node_call(char *name, int *args) {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_CALL;
   node->name = name;
+  node->val = args;
   return node;
 }
 
@@ -78,7 +79,7 @@ Node *term() {
     ++pos;
     char *variable = (char *)malloc(sizeof(char) * (strlen(token->input) + 1));
     strcpy(variable, token->input);
-    return new_node_call(variable);
+    return new_node_call(variable, token->val);
   }
 
   error("数値でも変数でも開きカッコでも関数呼び出しでもないトークンです: %s",
@@ -209,7 +210,9 @@ void tokenize(char *p) {
       Token *token = new_token();
       token->ty = TK_NUM;
       token->input = p;
-      token->val = strtol(p, &p, 10);
+      int *val = (int *)malloc(sizeof(int));
+      *val = strtol(p, &p, 10);
+      token->val = val;
       vec_push(tokens, token);
       continue;
     }
@@ -227,10 +230,50 @@ void tokenize(char *p) {
       variable[str_len] = '\0';
       token->input = variable;
 
-      if (*(p + str_len) != '\0' && *(p + str_len) == '(' &&
-          *(p + str_len + 1) != '\0' && *(p + str_len + 1) == ')') {
+      if (*(p + str_len) != '\0' && *(p + str_len) == '(') {
+        p += (str_len + 1);
+        int *function_args = malloc(sizeof(int) * 6);
+
+        int function_args_offset = 0;
+        bool expect_comma = false;
+        while (*p != ')') {
+          if (isspace(*p)) {
+            ++p;
+            continue;
+          }
+
+          if (isdigit(*p)) {
+            if (expect_comma)
+              error("カンマを想定していましたが数字ですねこれ．:%s\n", p);
+            if (function_args_offset == 5)
+              error("関数の引数は最大6個です．:%s\n", p);
+
+            function_args[function_args_offset++] = strtol(p, &p, 10);
+            expect_comma = true;
+            continue;
+          }
+
+          if (*p == ',') {
+            if (!expect_comma)
+              error("数値を想定していましたがカンマですねこれ．:%s\n", p);
+
+            ++p;
+            expect_comma = false;
+            continue;
+          }
+
+          error("想定していない文字が引数として渡されてますねこれ．:%s\n", p);
+        }
+
+        if (function_args_offset != 0 && !expect_comma)
+          error("関数の引数リストの最後がカンマで終わってますねこれ多分．:%s\n",
+                p);
+
+        // for closing braces
+        ++p;
+
+        token->val = function_args;
         token->ty = TK_CALL;
-        p += (str_len + 2);
       } else {
         token->ty = TK_IDENT;
         p += str_len;

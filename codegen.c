@@ -1,8 +1,34 @@
 #include "9cc.h"
 
+char *args_register_name_by_order(int order) {
+  char *result = "";
+
+  switch (order) {
+  case 0:
+    result = "rdi";
+    break;
+  case 1:
+    result = "rsi";
+    break;
+  case 2:
+    result = "rdx";
+    break;
+  case 3:
+    result = "rcx";
+    break;
+  case 4:
+    result = "r8";
+    break;
+  case 5:
+    result = "r9";
+  }
+
+  return result;
+}
+
 void gen_lval(Node *node) {
   if (node->ty != ND_IDENT) {
-    error("代入の左辺値が変数ではありません:%c", (char *)&node->val);
+    error("代入の左辺値が変数ではありません", "");
   }
 
   printf("  mov rax, rbp\n");
@@ -25,7 +51,7 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
   if (node->ty == ND_NUM) {
-    printf("  push %d\n", node->val);
+    printf("  push %d\n", node->val[0]);
     return;
   }
 
@@ -38,6 +64,9 @@ void gen(Node *node) {
   }
 
   if (node->ty == ND_CALL) {
+    for (int i = 0; i < 6; ++i) {
+      printf("  mov %s, %d\n", args_register_name_by_order(i), node->val[i]);
+    }
     printf("  call %s\n", node->name);
     return;
   }

@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 enum {
   TK_NUM = 256,
@@ -19,7 +20,7 @@ enum {
 
 typedef struct {
   int ty;
-  int val;
+  int *val;
   char *input;
 } Token;
 
@@ -27,7 +28,7 @@ typedef struct Node {
   int ty;
   struct Node *lhs;
   struct Node *rhs;
-  int val;
+  int *val;
   char *name;
 } Node;
 
@@ -56,9 +57,9 @@ void gen_lval(Node *node);
 int expect(int line, int expected, int actual);
 void runtest();
 Node *new_node(int ty, Node *lhs, Node *rhs);
-Node *new_node_num(int val);
+Node *new_node_num(int *val);
 Node *new_node_ident(char *name);
-Node *new_node_call(char *name);
+Node *new_node_call(char *name, int *val);
 Node *add();
 Node *mul();
 Node *comp();

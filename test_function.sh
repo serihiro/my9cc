@@ -8,6 +8,6 @@ gcc functions.c -o functions -c
 gcc tmp.s functions -o tmp
 ./tmp
 
-./9cc "bar();" > tmp.s
+./9cc "bar(1,2);" > tmp.s
 gcc tmp.s functions -o tmp
 ./tmp
