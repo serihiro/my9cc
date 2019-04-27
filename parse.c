@@ -33,6 +33,13 @@ Node *new_node_ident(char *name) {
   return node;
 }
 
+Node *new_node_call(char *name) {
+  Node *node = malloc(sizeof(Node));
+  node->ty = ND_CALL;
+  node->name = name;
+  return node;
+}
+
 int consume(int ty) {
   Token *token = (Token *)tokens->data[pos];
   if (token->ty != ty) {
@@ -67,7 +74,15 @@ Node *term() {
     return new_node_ident(variable);
   }
 
-  error("数値でも変数でも開きカッコでもないトークンです: %s", token->input);
+  if (token->ty == TK_CALL) {
+    ++pos;
+    char *variable = (char *)malloc(sizeof(char) * (strlen(token->input) + 1));
+    strcpy(variable, token->input);
+    return new_node_call(variable);
+  }
+
+  error("数値でも変数でも開きカッコでも関数呼び出しでもないトークンです: %s",
+        token->input);
 
   return NULL;
 }
@@ -199,20 +214,28 @@ void tokenize(char *p) {
       continue;
     }
 
-    // name of variable must start with alphabet
+    // name of variable and function must start with alphabet
     if (isalpha(*p)) {
       Token *token = new_token();
-      token->ty = TK_IDENT;
 
       int str_len = 0;
       while (isalnum(*(p + str_len)))
         ++str_len;
+
       char *variable = (char *)malloc(sizeof(char) * (str_len + 1));
       strncpy(variable, p, str_len);
       variable[str_len] = '\0';
-
-      p += str_len;
       token->input = variable;
+
+      if (*(p + str_len) != '\0' && *(p + str_len) == '(' &&
+          *(p + str_len + 1) != '\0' && *(p + str_len + 1) == ')') {
+        token->ty = TK_CALL;
+        p += (str_len + 2);
+      } else {
+        token->ty = TK_IDENT;
+        p += str_len;
+      }
+
       vec_push(tokens, token);
       continue;
     }

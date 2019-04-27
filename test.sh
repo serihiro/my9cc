@@ -50,6 +50,7 @@ try 9 'gasdfsadfSADFWERdgadsfsd5fsd4afs4adfb=4;cd2=5;gasdfsadfSADFWERdgadsfsd5fs
 try 1 '1==1;'
 try 0 '2==1;'
 try 1 '2!=1;'
+try 1 '1 * 2 == 2;'
 try 1 'a=1;b=1;a==b;'
 try 0 'a=1;b=2;a==b;'
 try 1 'a=1; b = 2;a !=  b;'

@@ -9,13 +9,12 @@ enum {
   TK_NEQ,
   TK_IDENT,
   TK_EOF,
-};
-
-enum {
-  ND_NUM = 256,
+  TK_CALL,
+  ND_NUM,
   ND_IDENT,
   ND_EQ,
   ND_NEQ,
+  ND_CALL,
 };
 
 typedef struct {
@@ -59,6 +58,7 @@ void runtest();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
 Node *new_node_ident(char *name);
+Node *new_node_call(char *name);
 Node *add();
 Node *mul();
 Node *comp();
