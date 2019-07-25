@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
   
     # Every Vagrant development environment requires a box. You can search for
     # boxes at https://vagrantcloud.com/search.
-    config.vm.box = "ubuntu/trusty64"
+    config.vm.box = "bento/ubuntu-18.04"
   
     # Disable automatic box update checking. If you disable this, then
     # boxes will only be checked for updates when the user runs
@@ -48,7 +48,7 @@ Vagrant.configure("2") do |config|
     #
     config.vm.provider "virtualbox" do |vb|
       vb.cpus = 1
-      vb.memory = "1024"
+      vb.memory = "4096"
     end
     #
     # View the documentation for the provider you are using for more
