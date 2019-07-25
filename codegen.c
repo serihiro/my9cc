@@ -1,34 +1,10 @@
 #include "9cc.h"
 
-char *args_register_name_by_order(int order) {
-  char *result = "";
-
-  switch (order) {
-  case 0:
-    result = "rdi";
-    break;
-  case 1:
-    result = "rsi";
-    break;
-  case 2:
-    result = "rdx";
-    break;
-  case 3:
-    result = "rcx";
-    break;
-  case 4:
-    result = "r8";
-    break;
-  case 5:
-    result = "r9";
-  }
-
-  return result;
-}
+const char *ARG_REGS[6] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
 void gen_lval(Node *node) {
   if (node->ty != ND_IDENT) {
-    error("代入の左辺値が変数ではありません", "");
+    error("代入の左辺値が変数ではありません:%c", (char *)&node->val);
   }
 
   printf("  mov rax, rbp\n");
@@ -51,7 +27,7 @@ void gen_lval(Node *node) {
 
 void gen(Node *node) {
   if (node->ty == ND_NUM) {
-    printf("  push %d\n", node->val[0]);
+    printf("  push %d\n", node->val);
     return;
   }
 
@@ -64,10 +40,32 @@ void gen(Node *node) {
   }
 
   if (node->ty == ND_CALL) {
+    printf("  push rbx\n");
+    printf("  push rbp\n");
+    printf("  push rsp\n");
+    printf("  push r12\n");
+    printf("  push r13\n");
+    printf("  push r14\n");
+    printf("  push r15\n");    
     for (int i = 0; i < 6; ++i) {
-      printf("  mov %s, %d\n", args_register_name_by_order(i), node->val[i]);
+      if(node->args->len > i){
+	gen((Node *)node->args->data[i]);
+	printf("  pop rax\n");
+	printf("  mov %s, rax\n", ARG_REGS[i]);
+      }else{
+	printf("  mov %s, %d\n", ARG_REGS[i], 0);
+      }
     }
     printf("  call %s\n", node->name);
+    printf("  pop r15\n");
+    printf("  pop r14\n");
+    printf("  pop r13\n");
+    printf("  pop r12\n");
+    printf("  pop rsp\n");
+    printf("  pop rbp\n");
+    printf("  pop rbx\n");
+
+    printf("  push rax\n");
     return;
   }
 

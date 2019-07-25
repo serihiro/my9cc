@@ -4,7 +4,7 @@ try() {
     input="$2"
 
     ./9cc "$input" > tmp.s
-    gcc -o tmp tmp.s
+    gcc tmp.s -o tmp functions.o
      ./tmp
     actual="$?"
 
@@ -54,6 +54,9 @@ try 1 '1 * 2 == 2;'
 try 1 'a=1;b=1;a==b;'
 try 0 'a=1;b=2;a==b;'
 try 1 'a=1; b = 2;a !=  b;'
+try 128 'foo();'
+try 3 'bar(1,2);'
+try 20 'bar((1+2)*4,8);'
 
 echo OK
 
