@@ -13,12 +13,12 @@ LVar *find_lvar(Token *token) {
 }
 
 Token *new_token() {
-  Token *token = malloc(sizeof(Token));
+  Token *token = calloc(1, sizeof(Token));
   return token;
 }
 
 Node *new_node(int ty, Node *lhs, Node *rhs) {
-  Node *node = malloc(sizeof(Node));
+  Node *node = calloc(1, sizeof(Node));
   node->ty = ty;
   node->lhs = lhs;
   node->rhs = rhs;
@@ -26,14 +26,14 @@ Node *new_node(int ty, Node *lhs, Node *rhs) {
 }
 
 Node *new_node_num(int val) {
-  Node *node = malloc(sizeof(Node));
+  Node *node = calloc(1, sizeof(Node));
   node->ty = ND_NUM;
   node->val = val;
   return node;
 }
 
 Node *new_node_ident(char *name, int offset) {
-  Node *node = malloc(sizeof(Node));
+  Node *node = calloc(1, sizeof(Node));
   node->ty = ND_IDENT;
   node->name = name;
   node->offset = offset;
@@ -41,7 +41,7 @@ Node *new_node_ident(char *name, int offset) {
 }
 
 Node *new_node_call(char *name, Vector *args) {
-  Node *node = malloc(sizeof(Node));
+  Node *node = calloc(1, sizeof(Node));
   node->ty = ND_CALL;
   node->name = name;
   node->args = args;

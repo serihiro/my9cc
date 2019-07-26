@@ -1,7 +1,7 @@
 #include "9cc.h"
 
 Vector *new_vector() {
-  Vector *vec = malloc(sizeof(Vector));
+  Vector *vec = calloc(1, sizeof(Vector));
   vec->data = malloc(sizeof(void *) * 16);
   vec->capacity = 16;
   vec->len = 0;
@@ -17,7 +17,7 @@ void vec_push(Vector *vec, void *elem) {
 }
 
 Map *new_map() {
-  Map *map = malloc(sizeof(Map));
+  Map *map = calloc(1, sizeof(Map));
   map->keys = new_vector();
   map->vals = new_vector();
   return map;
