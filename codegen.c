@@ -46,14 +46,14 @@ void gen(Node *node) {
     printf("  push r12\n");
     printf("  push r13\n");
     printf("  push r14\n");
-    printf("  push r15\n");    
+    printf("  push r15\n");
     for (int i = 0; i < 6; ++i) {
-      if(node->args->len > i){
-	gen((Node *)node->args->data[i]);
-	printf("  pop rax\n");
-	printf("  mov %s, rax\n", ARG_REGS[i]);
-      }else{
-	printf("  mov %s, %d\n", ARG_REGS[i], 0);
+      if (node->args->len > i) {
+        gen((Node *)node->args->data[i]);
+        printf("  pop rax\n");
+        printf("  mov %s, rax\n", ARG_REGS[i]);
+      } else {
+        printf("  mov %s, %d\n", ARG_REGS[i], 0);
       }
     }
     printf("  call %s\n", node->name);
