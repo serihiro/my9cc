@@ -21,6 +21,7 @@ typedef struct {
   int ty;
   int val;
   char *input;
+  int len;
 } Token;
 
 typedef struct {
@@ -36,19 +37,25 @@ typedef struct Node {
   int val;
   char *name;
   Vector *args;
+  int offset;
 } Node;
-
 
 typedef struct {
   Vector *keys;
   Vector *vals;
 } Map;
 
+typedef struct LVar {
+  struct LVar *next;
+  char *name;
+  int len;
+  int offset;
+} LVar;
+
 extern Vector *tokens;
 extern int pos;
 extern Node *code[100];
-extern Map *variable_map;
-extern int variable_offset;
+extern LVar *locals;
 
 void error(char *message, char *input);
 int consume(int ty);
@@ -59,7 +66,7 @@ int expect(int line, int expected, int actual);
 void runtest();
 Node *new_node(int ty, Node *lhs, Node *rhs);
 Node *new_node_num(int val);
-Node *new_node_ident(char *name);
+Node *new_node_ident(char *name, int offset);
 Node *new_node_call(char *name, Vector *args);
 Node *add();
 Node *mul();

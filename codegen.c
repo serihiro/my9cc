@@ -8,20 +8,7 @@ void gen_lval(Node *node) {
   }
 
   printf("  mov rax, rbp\n");
-
-  // calculate address of the target variable
-  int *offset = (int *)map_get(variable_map, node->name);
-  if (offset == NULL) {
-    // varibale size if fixed 8 Byte, for now
-    variable_offset += 8;
-    offset = (int *)malloc(sizeof(int));
-    *offset = variable_offset;
-    char *variable_name =
-        (char *)malloc(sizeof(char) * (strlen(node->name) + 1));
-    strcpy(variable_name, node->name);
-    map_put(variable_map, variable_name, offset);
-  }
-  printf("  sub rax, %d\n", *offset);
+  printf("  sub rax, %d\n", node->offset);
   printf("  push rax\n"); // push the address of the target variable
 }
 

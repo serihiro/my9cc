@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   }
 
   tokens = new_vector();
-  variable_map = new_map();
+  locals = calloc(1, sizeof(LVar));
 
   tokenize(argv[1]);
   program();

@@ -3,8 +3,14 @@
 Vector *tokens;
 int pos;
 Node *code[100];
-Map *variable_map;
-int variable_offset;
+LVar *locals;
+
+LVar *find_lvar(Token *token) {
+  for (LVar *var = locals; var; var = var->next)
+    if (var->len == token->len && !memcmp(token->input, var->name, var->len))
+      return var;
+  return NULL;
+}
 
 Token *new_token() {
   Token *token = malloc(sizeof(Token));
@@ -26,10 +32,11 @@ Node *new_node_num(int val) {
   return node;
 }
 
-Node *new_node_ident(char *name) {
+Node *new_node_ident(char *name, int offset) {
   Node *node = malloc(sizeof(Node));
   node->ty = ND_IDENT;
   node->name = name;
+  node->offset = offset;
   return node;
 }
 
@@ -70,17 +77,25 @@ Node *term() {
   }
 
   if (token->ty == TK_IDENT) {
-    char *variable = (char *)malloc(sizeof(char) * (strlen(token->input) + 1));
-    strcpy(variable, token->input);
-
     ++pos;
     if (!consume('(')) {
-      return new_node_ident(variable);
+
+      LVar *lvar = find_lvar(token);
+      if (!lvar) {
+        lvar = calloc(1, sizeof(LVar));
+        lvar->next = locals;
+        lvar->name = token->input;
+        lvar->len = token->len;
+        lvar->offset = locals->offset + 8;
+        locals = lvar;
+      }
+
+      return new_node_ident(token->input, lvar->offset);
     }
 
     Vector *args = new_vector();
     if (consume(')')) {
-      return new_node_call(variable, args);
+      return new_node_call(token->input, args);
     }
 
     vec_push(args, assign());
@@ -93,7 +108,7 @@ Node *term() {
       return NULL;
     }
 
-    return new_node_call(variable, args);
+    return new_node_call(token->input, args);
   }
 
   error("数値でも変数でも開きカッコでも関数呼び出しでもないトークンです: %s",
@@ -241,10 +256,11 @@ void tokenize(char *p) {
       strncpy(variable, p, str_len);
       variable[str_len] = '\0';
       token->input = variable;
-
+      token->len = str_len;
       token->ty = TK_IDENT;
-      p += str_len;
+
       vec_push(tokens, token);
+      p += token->len;
       continue;
     }
 
