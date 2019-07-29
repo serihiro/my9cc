@@ -13,6 +13,17 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+  if (node->ty == ND_IF) {
+    gen(node->lhs);
+    ++seq_if;
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lend%d\n", seq_if);
+    gen(node->rhs);
+    printf(".Lend%d:\n", seq_if);
+    return;
+  }
+
   if (node->ty == ND_RETURN) {
     gen(node->lhs);
     printf("  pop rax\n");

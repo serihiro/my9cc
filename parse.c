@@ -1,9 +1,10 @@
 #include "9cc.h"
 
 Vector *tokens;
-int pos;
+int pos = 0;
 Node *code[100];
 LVar *locals;
+int seq_if = 0;
 
 LVar *find_lvar(Token *token) {
   for (LVar *var = locals; var; var = var->next)
@@ -178,6 +179,18 @@ Node *stmt() {
     node = calloc(1, sizeof(Node));
     node->ty = ND_RETURN;
     node->lhs = assign();
+  } else if (consume(TK_IF) && consume('(')) {
+    node = calloc(1, sizeof(Node));
+    node->ty = ND_IF;
+    // This statement is `A` of `if(A) B;`
+    node->lhs = assign();
+    if (!consume(')')) {
+      Token *token = (Token *)tokens->data[pos];
+      error("')'ではないトークンです: %s", token->input);
+    }
+    // This statement is `B` of `if(A) B;`
+    node->rhs = stmt();
+    return node;
   } else {
     node = assign();
   }
@@ -269,6 +282,8 @@ void tokenize(char *p) {
       token->len = str_len;
       if (strncmp(variable, "return", 6) == 0 && !(isalpha(p[6]))) {
         token->ty = TK_RETURN;
+      } else if (strncmp(variable, "if", 2) == 0 && !(isalpha(p[2]))) {
+        token->ty = TK_IF;
       } else {
         token->ty = TK_IDENT;
       }

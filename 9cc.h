@@ -11,12 +11,14 @@ enum {
   TK_IDENT,
   TK_EOF,
   TK_RETURN,
+  TK_IF,
   ND_NUM,
   ND_IDENT,
   ND_EQ,
   ND_NEQ,
   ND_CALL,
   ND_RETURN,
+  ND_IF,
 };
 
 typedef struct {
@@ -58,6 +60,7 @@ extern Vector *tokens;
 extern int pos;
 extern Node *code[100];
 extern LVar *locals;
+extern int seq_if;
 
 void error(char *message, char *input);
 int consume(int ty);

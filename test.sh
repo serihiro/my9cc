@@ -58,6 +58,11 @@ try 128 'foo();'
 try 3 'bar(1,2);'
 try 20 'bar((1+2)*4,8);'
 try 2 'a=1;b=1;return a+b;3;'
+try 2 'if(1==1)return 2;'
+try 2 'if(1==1)return 2;return 3;'
+try 3 'if(1==0)return 2;return 3;'
+try 3 'a=1;b=2;if(a==b)return 2;return 3;'
+try 3 'a=1;b=2;if(a==b)return 2;if(1==1)return 3;return 4;'
 
 echo OK
 
