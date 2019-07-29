@@ -172,7 +172,16 @@ Node *assign() {
 }
 
 Node *stmt() {
-  Node *node = assign();
+  Node *node;
+
+  if (consume(TK_RETURN)) {
+    node = calloc(1, sizeof(Node));
+    node->ty = ND_RETURN;
+    node->lhs = assign();
+  } else {
+    node = assign();
+  }
+
   if (!consume(';')) {
     Token *token = (Token *)tokens->data[pos];
     error("';'ではないトークンです: %s", token->input);
@@ -255,9 +264,14 @@ void tokenize(char *p) {
       char *variable = (char *)malloc(sizeof(char) * (str_len + 1));
       strncpy(variable, p, str_len);
       variable[str_len] = '\0';
+
       token->input = variable;
       token->len = str_len;
-      token->ty = TK_IDENT;
+      if (strncmp(variable, "return", 6) == 0 && !(isalpha(p[6]))) {
+        token->ty = TK_RETURN;
+      } else {
+        token->ty = TK_IDENT;
+      }
 
       vec_push(tokens, token);
       p += token->len;

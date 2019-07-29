@@ -10,11 +10,13 @@ enum {
   TK_NEQ,
   TK_IDENT,
   TK_EOF,
+  TK_RETURN,
   ND_NUM,
   ND_IDENT,
   ND_EQ,
   ND_NEQ,
   ND_CALL,
+  ND_RETURN,
 };
 
 typedef struct {

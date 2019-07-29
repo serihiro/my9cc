@@ -57,6 +57,7 @@ try 1 'a=1; b = 2;a !=  b;'
 try 128 'foo();'
 try 3 'bar(1,2);'
 try 20 'bar((1+2)*4,8);'
+try 2 'a=1;b=1;return a+b;3;'
 
 echo OK
 
