@@ -13,6 +13,7 @@ enum {
   TK_RETURN,
   TK_IF,
   TK_ELSE,
+  TK_WHILE,
   ND_NUM,
   ND_IDENT,
   ND_EQ,
@@ -20,6 +21,7 @@ enum {
   ND_CALL,
   ND_RETURN,
   ND_IF,
+  ND_WHILE,
 };
 
 typedef struct {
@@ -63,6 +65,7 @@ extern int pos;
 extern Node *code[100];
 extern LVar *locals;
 extern int seq_if;
+extern int seq_while;
 
 void error(char *message, char *input);
 int consume(int ty);

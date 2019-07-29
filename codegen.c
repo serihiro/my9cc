@@ -13,6 +13,19 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+  if (node->ty == ND_WHILE) {
+    int seq = seq_while++;
+    printf(".Lbegin%d:\n", seq);
+    gen(node->lhs);
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .Lend%d\n", seq);
+    gen(node->rhs);
+    printf("  jmp .Lbegin%d\n", seq);
+    printf(".Lend%d:\n", seq);
+    return;
+  }
+
   if (node->ty == ND_IF) {
     gen(node->lhs);
     int seq = seq_if++;

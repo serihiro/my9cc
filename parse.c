@@ -5,6 +5,7 @@ int pos = 0;
 Node *code[100];
 LVar *locals;
 int seq_if = 0;
+int seq_while = 0;
 
 LVar *find_lvar(Token *token) {
   for (LVar *var = locals; var; var = var->next)
@@ -196,6 +197,20 @@ Node *stmt() {
     }
 
     return node;
+  } else if (consume(TK_WHILE) && consume('(')) {
+    node = calloc(1, sizeof(Node));
+    node->ty = ND_WHILE;
+
+    // This statement is `A` of `while(A) B;`
+    node->lhs = assign();
+    if (!consume(')')) {
+      Token *token = (Token *)tokens->data[pos];
+      error("')'ではないトークンです: %s", token->input);
+    }
+    // This statement is `B` of `while(A) B;`
+    node->rhs = stmt();
+
+    return node;
   } else {
     node = assign();
   }
@@ -291,6 +306,8 @@ void tokenize(char *p) {
         token->ty = TK_IF;
       } else if (strncmp(variable, "else", 4) == 0 && !(isalpha(p[4]))) {
         token->ty = TK_ELSE;
+      } else if (strncmp(variable, "while", 5) == 0 && !(isalpha(p[5]))) {
+        token->ty = TK_WHILE;
       } else {
         token->ty = TK_IDENT;
       }

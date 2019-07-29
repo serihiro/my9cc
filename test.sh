@@ -67,6 +67,7 @@ try 2 'if(1==1)return 2;else return 3;'
 try 3 'if(1==0)return 2;else return 3;'
 try 3 'if(1==0)return 2;else if(1==1)return 3;'
 try 4 'if(1==0)return 2;else if(1==0)return 3;else return 4;'
+try 55 'a=0;while(a!=55) a=a+1;'
 
 echo OK
 
