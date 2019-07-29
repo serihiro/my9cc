@@ -15,12 +15,23 @@ void gen_lval(Node *node) {
 void gen(Node *node) {
   if (node->ty == ND_IF) {
     gen(node->lhs);
-    ++seq_if;
+    int seq = seq_if++;
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    printf("  je  .Lend%d\n", seq_if);
-    gen(node->rhs);
-    printf(".Lend%d:\n", seq_if);
+
+    if (node->els != NULL) {
+      printf("  je  .Lelse%d\n", seq);
+      gen(node->rhs);
+      printf("  jmp  .Lend%d\n", seq);
+      printf(".Lelse%d:\n", seq);
+      gen(node->els);
+      printf(".Lend%d:\n", seq);
+    } else {
+      printf("  je  .Lend%d\n", seq);
+      gen(node->rhs);
+      printf(".Lend%d:\n", seq);
+    }
+
     return;
   }
 

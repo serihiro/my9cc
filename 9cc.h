@@ -12,6 +12,7 @@ enum {
   TK_EOF,
   TK_RETURN,
   TK_IF,
+  TK_ELSE,
   ND_NUM,
   ND_IDENT,
   ND_EQ,
@@ -38,6 +39,7 @@ typedef struct Node {
   int ty;
   struct Node *lhs;
   struct Node *rhs;
+  struct Node *els;
   int val;
   char *name;
   Vector *args;

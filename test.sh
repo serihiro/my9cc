@@ -63,6 +63,10 @@ try 2 'if(1==1)return 2;return 3;'
 try 3 'if(1==0)return 2;return 3;'
 try 3 'a=1;b=2;if(a==b)return 2;return 3;'
 try 3 'a=1;b=2;if(a==b)return 2;if(1==1)return 3;return 4;'
+try 2 'if(1==1)return 2;else return 3;'
+try 3 'if(1==0)return 2;else return 3;'
+try 3 'if(1==0)return 2;else if(1==1)return 3;'
+try 4 'if(1==0)return 2;else if(1==0)return 3;else return 4;'
 
 echo OK
 

@@ -188,8 +188,13 @@ Node *stmt() {
       Token *token = (Token *)tokens->data[pos];
       error("')'ではないトークンです: %s", token->input);
     }
+
     // This statement is `B` of `if(A) B;`
     node->rhs = stmt();
+    if (consume(TK_ELSE)) {
+      node->els = stmt();
+    }
+
     return node;
   } else {
     node = assign();
@@ -284,6 +289,8 @@ void tokenize(char *p) {
         token->ty = TK_RETURN;
       } else if (strncmp(variable, "if", 2) == 0 && !(isalpha(p[2]))) {
         token->ty = TK_IF;
+      } else if (strncmp(variable, "else", 4) == 0 && !(isalpha(p[4]))) {
+        token->ty = TK_ELSE;
       } else {
         token->ty = TK_IDENT;
       }
