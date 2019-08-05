@@ -6,6 +6,7 @@ Node *code[100];
 LVar *locals;
 int seq_if = 0;
 int seq_while = 0;
+int seq_for = 0;
 
 LVar *find_lvar(Token *token) {
   for (LVar *var = locals; var; var = var->next)
@@ -211,6 +212,41 @@ Node *stmt() {
     node->rhs = stmt();
 
     return node;
+  } else if (consume(TK_FOR) && consume('(')) {
+    node = calloc(1, sizeof(Node));
+    node->ty = ND_FOR;
+
+    // This expr is `A of `for(A;B;C)D;`
+    if (!consume(';')) {
+      node->lhs = assign();
+      if (!consume(';')) {
+        Token *token = (Token *)tokens->data[pos];
+        error("';'ではないトークンです: %s", token->input);
+      }
+    }
+
+    // This expr is `B of `for(A;B;C)D;`
+    if (!consume(';')) {
+      node->rhs = assign();
+      if (!consume(';')) {
+        Token *token = (Token *)tokens->data[pos];
+        error("';'ではないトークンです: %s", token->input);
+      }
+    }
+
+    // This expr is `C of `for(A;B;C)D;`
+    if (!consume(')')) {
+      node->els = assign();
+      if (!consume(')')) {
+        Token *token = (Token *)tokens->data[pos];
+        error("')'ではないトークンです: %s", token->input);
+      }
+    }
+
+    // This stmt is `D of `for(A;B;C)D;`
+    node->inner = stmt();
+
+    return node;
   } else {
     node = assign();
   }
@@ -308,6 +344,8 @@ void tokenize(char *p) {
         token->ty = TK_ELSE;
       } else if (strncmp(variable, "while", 5) == 0 && !(isalpha(p[5]))) {
         token->ty = TK_WHILE;
+      } else if (strncmp(variable, "for", 3) == 0 && !(isalpha(p[3]))) {
+        token->ty = TK_FOR;
       } else {
         token->ty = TK_IDENT;
       }

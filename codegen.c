@@ -15,14 +15,14 @@ void gen_lval(Node *node) {
 void gen(Node *node) {
   if (node->ty == ND_WHILE) {
     int seq = seq_while++;
-    printf(".Lbegin%d:\n", seq);
+    printf(".LWhilebegin%d:\n", seq);
     gen(node->lhs);
     printf("  pop rax\n");
     printf("  cmp rax, 0\n");
-    printf("  je  .Lend%d\n", seq);
+    printf("  je  .LWhileend%d\n", seq);
     gen(node->rhs);
-    printf("  jmp .Lbegin%d\n", seq);
-    printf(".Lend%d:\n", seq);
+    printf("  jmp .LWhilebegin%d\n", seq);
+    printf(".LWhileend%d:\n", seq);
     return;
   }
 
@@ -35,16 +35,37 @@ void gen(Node *node) {
     if (node->els != NULL) {
       printf("  je  .Lelse%d\n", seq);
       gen(node->rhs);
-      printf("  jmp  .Lend%d\n", seq);
+      printf("  jmp  .LIfend%d\n", seq);
       printf(".Lelse%d:\n", seq);
       gen(node->els);
-      printf(".Lend%d:\n", seq);
+      printf(".LIfend%d:\n", seq);
     } else {
-      printf("  je  .Lend%d\n", seq);
+      printf("  je  .LIfend%d\n", seq);
       gen(node->rhs);
-      printf(".Lend%d:\n", seq);
+      printf(".LIfend%d:\n", seq);
     }
 
+    return;
+  }
+
+  if (node->ty == ND_FOR) {
+    if (node->lhs != NULL) {
+      gen(node->lhs);
+    }
+    int seq = seq_for++;
+    printf(".LForbegin%d:\n", seq);
+    if (node->rhs != NULL) {
+      gen(node->rhs);
+    }
+    printf("  pop rax\n");
+    printf("  cmp rax, 0\n");
+    printf("  je  .LForend%d\n", seq);
+    gen(node->inner);
+    if (node->els != NULL) {
+      gen(node->els);
+    }
+    printf("  jmp .LForbegin%d\n", seq);
+    printf(".LForend%d:\n", seq);
     return;
   }
 

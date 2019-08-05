@@ -68,6 +68,10 @@ try 3 'if(1==0)return 2;else return 3;'
 try 3 'if(1==0)return 2;else if(1==1)return 3;'
 try 4 'if(1==0)return 2;else if(1==0)return 3;else return 4;'
 try 55 'a=0;while(a!=55) a=a+1;'
+try 10 'b=0;for(a=0;a!=10;a=a+1)b=b+1;return b;'
+try 10 'a=0;b=0;for(;a!=10;b=b+1)a=a+1;return b;'
+try 10 'a=0;for(;a!=10;)a=a+1;return a;'
+try 200 'b=0;for(a=0;a!=10;a=a+1)if(a==8)b=100;else b=200;return b;'
 
 echo OK
 

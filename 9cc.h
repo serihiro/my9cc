@@ -14,6 +14,7 @@ enum {
   TK_IF,
   TK_ELSE,
   TK_WHILE,
+  TK_FOR,
   ND_NUM,
   ND_IDENT,
   ND_EQ,
@@ -22,6 +23,7 @@ enum {
   ND_RETURN,
   ND_IF,
   ND_WHILE,
+  ND_FOR,
 };
 
 typedef struct {
@@ -42,6 +44,7 @@ typedef struct Node {
   struct Node *lhs;
   struct Node *rhs;
   struct Node *els;
+  struct Node *inner;
   int val;
   char *name;
   Vector *args;
@@ -66,6 +69,7 @@ extern Node *code[100];
 extern LVar *locals;
 extern int seq_if;
 extern int seq_while;
+extern int seq_for;
 
 void error(char *message, char *input);
 int consume(int ty);
