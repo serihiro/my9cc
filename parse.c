@@ -247,6 +247,17 @@ Node *stmt() {
     node->inner = stmt();
 
     return node;
+  } else if (consume('{')) {
+    node = calloc(1, sizeof(Node));
+    node->ty = ND_BLOCK;
+
+    Vector *lines = new_vector();
+    while (!consume('}')) {
+      vec_push(lines, stmt());
+    }
+    node->args = lines;
+
+    return node;
   } else {
     node = assign();
   }
@@ -277,7 +288,7 @@ void tokenize(char *p) {
     }
 
     if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' ||
-        *p == ')' || *p == ';' || *p == ',') {
+        *p == ')' || *p == ';' || *p == ',' || *p == '{' || *p == '}') {
       Token *token = new_token();
       token->ty = *p;
       token->input = p;

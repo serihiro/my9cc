@@ -72,6 +72,10 @@ try 10 'b=0;for(a=0;a!=10;a=a+1)b=b+1;return b;'
 try 10 'a=0;b=0;for(;a!=10;b=b+1)a=a+1;return b;'
 try 10 'a=0;for(;a!=10;)a=a+1;return a;'
 try 200 'b=0;for(a=0;a!=10;a=a+1)if(a==8)b=100;else b=200;return b;'
+try 2 'if(1==1){a=1;b=1;}return a+b;'
+try 31 'a=0;b=0;c=0;while(a!=10) {a=a+1;b=b+2;}c=c+1;return a+b+c;'
+try 15 'b=0;for(a=0;a!=10;a=a+1){b=b+1;a=a+1;}return a+b;'
+try 10 'a=0;for(;a!=10;a=a+1){}return a;'
 
 echo OK
 

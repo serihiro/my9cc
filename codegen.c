@@ -13,6 +13,13 @@ void gen_lval(Node *node) {
 }
 
 void gen(Node *node) {
+  if (node->ty == ND_BLOCK) {
+    for (int i = 0; i < node->args->len; ++i) {
+      gen((Node *)node->args->data[i]);
+    }
+    return;
+  }
+
   if (node->ty == ND_WHILE) {
     int seq = seq_while++;
     printf(".LWhilebegin%d:\n", seq);

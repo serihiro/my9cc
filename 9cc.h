@@ -24,6 +24,7 @@ enum {
   ND_IF,
   ND_WHILE,
   ND_FOR,
+  ND_BLOCK,
 };
 
 typedef struct {
