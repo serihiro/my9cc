@@ -64,10 +64,15 @@ typedef struct LVar {
   int offset;
 } LVar;
 
+typedef struct LVarList {
+  struct LVarList *next;
+  struct LVar *lvar;
+} LVarList;
+
 extern Vector *tokens;
 extern int pos;
 extern Node *code[100];
-extern LVar *locals;
+extern LVarList *locals;
 extern int seq_if;
 extern int seq_while;
 extern int seq_for;

@@ -3,13 +3,22 @@
 Vector *tokens;
 int pos = 0;
 Node *code[100];
-LVar *locals;
+LVarList *locals;
 int seq_if = 0;
 int seq_while = 0;
 int seq_for = 0;
 
+void push_locals() {
+  LVarList *new_var = calloc(1, sizeof(LVarList));
+  new_var->lvar = calloc(1, sizeof(LVar));
+  new_var->next = locals;
+  locals = new_var;
+}
+
+void pop_locals() { locals = locals->next; }
+
 LVar *find_lvar(Token *token) {
-  for (LVar *var = locals; var; var = var->next)
+  for (LVar *var = locals->lvar; var; var = var->next)
     if (var->len == token->len && !memcmp(token->input, var->name, var->len))
       return var;
   return NULL;
@@ -86,11 +95,11 @@ Node *term() {
       LVar *lvar = find_lvar(token);
       if (!lvar) {
         lvar = calloc(1, sizeof(LVar));
-        lvar->next = locals;
+        lvar->next = locals->lvar;
         lvar->name = token->input;
         lvar->len = token->len;
-        lvar->offset = locals->offset + 8;
-        locals = lvar;
+        lvar->offset = locals->lvar->offset + 8;
+        locals->lvar = lvar;
       }
 
       return new_node_ident(token->input, lvar->offset);
@@ -250,6 +259,7 @@ Node *stmt() {
   } else if (consume('{')) {
     node = calloc(1, sizeof(Node));
     node->ty = ND_BLOCK;
+    push_locals();
 
     Vector *lines = new_vector();
     while (!consume('}')) {
@@ -257,6 +267,7 @@ Node *stmt() {
     }
     node->args = lines;
 
+    pop_locals();
     return node;
   } else {
     node = assign();

@@ -12,7 +12,8 @@ int main(int argc, char **argv) {
   }
 
   tokens = new_vector();
-  locals = calloc(1, sizeof(LVar));
+  locals = calloc(1, sizeof(LVarList));
+  locals->lvar = calloc(1, sizeof(LVar));
 
   tokenize(argv[1]);
   program();
